@@ -117,30 +117,110 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Admin login (for staff)
+router.post('/admin/login', async (req, res) => {
+  const pool = req.app.locals.pool;
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Get staff member (case-insensitive email check)
+    const [staff] = await pool.execute(
+      'SELECT Staff_ID, Staff_Name, Email, Role FROM Staff WHERE LOWER(Email) = LOWER(?)',
+      [email]
+    );
+
+    if (staff.length === 0) {
+      // Helpful debug: List available staff emails (only in development)
+      if (process.env.NODE_ENV !== 'production') {
+        const [allStaff] = await pool.execute('SELECT Email FROM Staff LIMIT 10');
+        console.log('Available staff emails:', allStaff.map(s => s.Email));
+      }
+      return res.status(401).json({ error: 'Invalid email or password. Staff email not found in database.' });
+    }
+
+    const staffMember = staff[0];
+
+    // For now, we'll use a simple check - in production, add Password_Hash to Staff table
+    // For demo purposes, we'll check if email exists and create a token
+    // TODO: Add password hashing to Staff table
+
+    // Generate token
+    const token = jwt.sign(
+      { staffId: staffMember.Staff_ID, email: staffMember.Email, role: 'admin', staffRole: staffMember.Role },
+      process.env.JWT_SECRET || 'your_secret_key_here_change_in_production',
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      message: 'Admin login successful',
+      token,
+      user: {
+        staffId: staffMember.Staff_ID,
+        email: staffMember.Email,
+        name: staffMember.Staff_Name,
+        role: staffMember.Role
+      }
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ error: 'Login failed', message: error.message });
+  }
+});
+
 // Verify token
 router.get('/verify', authenticateToken, async (req, res) => {
   const pool = req.app.locals.pool;
   try {
-    const [students] = await pool.execute(
-      'SELECT SSRN, First_Name, Last_Name, Email, Status FROM Student WHERE SSRN = ?',
-      [req.user.ssrn]
-    );
+    if (req.user.role === 'admin') {
+      // Admin verification
+      const [staff] = await pool.execute(
+        'SELECT Staff_ID, Staff_Name, Email, Role FROM Staff WHERE Staff_ID = ?',
+        [req.user.staffId]
+      );
 
-    if (students.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const student = students[0];
-    res.json({
-      valid: true,
-      user: {
-        ssrn: student.SSRN,
-        email: student.Email,
-        firstName: student.First_Name,
-        lastName: student.Last_Name,
-        status: student.Status
+      if (staff.length === 0) {
+        return res.status(404).json({ error: 'Admin not found' });
       }
-    });
+
+      const staffMember = staff[0];
+      return res.json({
+        valid: true,
+        user: {
+          staffId: staffMember.Staff_ID,
+          email: staffMember.Email,
+          name: staffMember.Staff_Name,
+          role: staffMember.Role
+        },
+        isAdmin: true
+      });
+    } else {
+      // Student verification
+      const [students] = await pool.execute(
+        'SELECT SSRN, First_Name, Last_Name, Email, Status FROM Student WHERE SSRN = ?',
+        [req.user.ssrn]
+      );
+
+      if (students.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const student = students[0];
+      return res.json({
+        valid: true,
+        user: {
+          ssrn: student.SSRN,
+          email: student.Email,
+          firstName: student.First_Name,
+          lastName: student.Last_Name,
+          status: student.Status
+        },
+        isAdmin: false
+      });
+    }
   } catch (error) {
     console.error('Verify error:', error);
     res.status(500).json({ error: 'Verification failed', message: error.message });

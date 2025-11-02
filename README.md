@@ -12,10 +12,14 @@ A comprehensive web-based system for managing sports court bookings at a college
 - **Cancel Bookings**: Cancel pending or confirmed bookings
 - **Real-time Availability**: Check slot availability for specific dates
 
-### Admin Features (API Ready)
-- View all bookings across the system
-- Dashboard with statistics
-- Manage courts and staff (routes available)
+### Admin Features
+- **Admin Authentication**: Separate login system for staff members
+- **Dashboard**: Comprehensive statistics overview with metrics
+- **Court Management**: Create, update, and delete courts
+- **Booking Management**: View all bookings with filters (status, date)
+- **Sports Management**: Manage sports in the system (API ready)
+- **Staff Management**: Manage staff members (API ready)
+- **Slot Management**: Manage time slots for courts (API ready)
 
 ## Database Schema
 
@@ -188,8 +192,21 @@ INSERT INTO Slot (Court_ID, Slot_Date, Start_Time, End_Time, Status) VALUES
 - `PUT /api/bookings/:id/confirm` - Confirm booking (requires auth)
 
 ### Admin
-- `GET /api/admin/bookings` - Get all bookings (requires admin auth)
+- `POST /api/auth/admin/login` - Admin login (staff email required)
 - `GET /api/admin/dashboard` - Get dashboard statistics (requires admin auth)
+- `GET /api/admin/bookings` - Get all bookings (requires admin auth, query: `status`, `date`)
+- `GET /api/admin/courts` - Get all courts (requires admin auth)
+- `POST /api/admin/courts` - Create new court (requires admin auth)
+- `PUT /api/admin/courts/:id` - Update court (requires admin auth)
+- `DELETE /api/admin/courts/:id` - Delete court (requires admin auth)
+- `GET /api/admin/sports` - Get all sports (requires admin auth)
+- `POST /api/admin/sports` - Create sport (requires admin auth)
+- `PUT /api/admin/sports/:id` - Update sport (requires admin auth)
+- `DELETE /api/admin/sports/:id` - Delete sport (requires admin auth)
+- `GET /api/admin/staff` - Get all staff (requires admin auth)
+- `POST /api/admin/staff` - Create staff (requires admin auth)
+- `PUT /api/admin/staff/:id` - Update staff (requires admin auth)
+- `DELETE /api/admin/staff/:id` - Delete staff (requires admin auth)
 
 ## Project Structure
 
