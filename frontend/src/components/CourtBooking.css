@@ -1,0 +1,152 @@
+.court-booking {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.court-booking h1 {
+  color: #FD8916;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;  /* centers content horizontally */
+  align-items: center;      /* optional: centers vertically inside box */
+  margin: 20px auto;        /* centers the box itself on the page */
+  width: fit-content;       /* makes box only as wide as its content */
+  background: white;        /* your existing background color */
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.booking-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-section select,
+.form-section input[type="date"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-section select:focus,
+.form-section input[type="date"]:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.court-details {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.court-details h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.court-details p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.loading-slots,
+.no-slots {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.slot-btn {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.slot-btn:hover {
+  border-color: #3498db;
+  background-color: #f0f8ff;
+}
+
+.slot-btn.selected {
+  border-color: #27ae60;
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: 500;
+}
+
+.submit-booking-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+}
+
+.submit-booking-btn:hover:not(:disabled) {
+  background-color: #229954;
+}
+
+.submit-booking-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+
+
+

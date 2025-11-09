@@ -1,4 +1,4 @@
-# Python
+# Python (IIMS Project)
 __pycache__/
 *.py[cod]
 *$py.class
@@ -11,7 +11,7 @@ ENV/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Testing
+# Testing (IIMS)
 .pytest_cache/
 .coverage
 htmlcov/
@@ -22,8 +22,31 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*.cover
-.hypothesis/
+
+# Node.js (DBMS Project)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Build outputs
+backend/dist/
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
 
 # IDEs
 .vscode/
@@ -33,20 +56,10 @@ coverage.xml
 *~
 .DS_Store
 
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Logs
-*.log
-logs/
-
-# Docker
+# Docker (IIMS)
 *.tar
 *.tar.gz
 iims-image.tar.gz
 
 # OS
 Thumbs.db
-

@@ -1,0 +1,156 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+/* apply background to the full page (or to a top-level .app wrapper) */
+body {
+  background-image: url('../assets/2.png'); /* adjust relative path to where login.css is */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* optional — keeps it fixed while scrolling */
+}
+
+.landing-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+  /*background-image: url('D:\Projects_Sem_5\DBMS_mini\new\frontend\src\assets\2.png');*/
+}
+
+.landing-content {
+  text-align: center;
+  max-width: 900px;
+  width: 100%;
+}
+
+.landing-header {
+  color: #FD8916;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;  /* centers content horizontally */
+  align-items: center;      /* optional: centers vertically inside box */
+  margin: 20px auto;        /* centers the box itself on the page */
+  width: fit-content;       /* makes box only as wide as its content */
+  background: white;        /* your existing background color */
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.orange {
+  color:#FD8916;
+}
+
+.blue {
+  color : #173B61;
+}
+
+.landing-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.landing-header p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.landing-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.option-card {
+  background: #173B61;
+  /*background: #0b2043;*/
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.option-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.student-card:hover {
+  border: 3px solid #024555;
+}
+
+.admin-card:hover {
+  border: 3px solid #024555;
+}
+
+.option-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.option-card h2 {
+  color: white;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.option-card p {
+  color: #f4eaea;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.option-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.student-btn {
+  background-color: #FD8916;
+  color: white;
+}
+
+.student-btn:hover {
+  background-color: #FD8916;
+  transform: scale(1.05);
+}
+
+.admin-btn {
+  background-color: #FD8916;
+  color: white;
+}
+
+.admin-btn:hover {
+  background-color: #FD8916;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .landing-header h1 {
+    font-size: 2rem;
+  }
+  
+  .landing-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .option-card {
+    padding: 2rem;
+  }
+}
+
