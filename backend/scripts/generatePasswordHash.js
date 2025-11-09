@@ -15,3 +15,6 @@ bcrypt.hash(password, 10)
     console.error('Error generating hash:', err);
   });
 
+
+
+

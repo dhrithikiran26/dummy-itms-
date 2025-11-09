@@ -47,7 +47,9 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <h1>Welcome to Sports Court Booking</h1>
+      <div className="Welcome">
+      <h1>Welcome!</h1>
+      </div>
       
       <div className="sports-filter">
         <label htmlFor="sport-select">Filter by Sport:</label>

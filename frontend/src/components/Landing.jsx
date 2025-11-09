@@ -9,8 +9,9 @@ const Landing = () => {
     <div className="landing-container">
       <div className="landing-content">
         <div className="landing-header">
-          <h1>🏀 Sports Court Booking System</h1>
-          <p>College Sports Court Management</p>
+          <h1 className="orange">Book</h1>
+          <h1 className="blue">My</h1>
+          <h1 className="orange">Court</h1>
         </div>
         
         <div className="landing-options">
@@ -34,4 +35,7 @@ const Landing = () => {
 };
 
 export default Landing;
+
+
+
 

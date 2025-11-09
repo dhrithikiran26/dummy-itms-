@@ -21,7 +21,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/dashboard" className="navbar-logo">
-          🏀 Sports Court Booking
+          🏀BookMyCourt
         </Link>
         {user && (
           <div className="navbar-menu">

@@ -142,3 +142,6 @@ const BookingsManagement = () => {
 
 export default BookingsManagement;
 
+
+
+

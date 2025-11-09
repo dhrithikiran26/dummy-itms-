@@ -3,10 +3,19 @@
 }
 
 .dashboard h1 {
-  color: #2c3e50;
+  color: #FD8916;
   margin-bottom: 2rem;
-  text-align: center;
+  display: flex;
+  justify-content: center;  /* centers content horizontally */
+  align-items: center;      /* optional: centers vertically inside box */
+  margin: 20px auto;        /* centers the box itself on the page */
+  width: fit-content;       /* makes box only as wide as its content */
+  background: white;        /* your existing background color */
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
+
 
 .sports-filter {
   margin-bottom: 2rem;
@@ -17,7 +26,7 @@
 
 .sports-filter label {
   font-weight: 500;
-  color: #333;
+  color: #FD8916;
 }
 
 .sports-filter select {
@@ -118,4 +127,7 @@
   color: #666;
   grid-column: 1 / -1;
 }
+
+
+
 

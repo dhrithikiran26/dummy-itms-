@@ -149,10 +149,272 @@ CREATE TABLE IF NOT EXISTS Payment (
 );
 
 -- Indexes for better performance
+DROP INDEX IF EXISTS idx_booking_ssrn ON Booking;
+DROP INDEX IF EXISTS idx_booking_court ON Booking;
+DROP INDEX IF EXISTS idx_booking_status ON Booking;
+DROP INDEX IF EXISTS idx_slot_court_date ON Slot;
+DROP INDEX IF EXISTS idx_court_sport ON Court;
+DROP INDEX IF EXISTS idx_court_status ON Court;
+
 CREATE INDEX idx_booking_ssrn ON Booking(SSRN);
 CREATE INDEX idx_booking_court ON Booking(Court_ID);
 CREATE INDEX idx_booking_status ON Booking(Booking_Status);
 CREATE INDEX idx_slot_court_date ON Slot(Court_ID, Slot_Date);
 CREATE INDEX idx_court_sport ON Court(Sport_ID);
 CREATE INDEX idx_court_status ON Court(Availability_Status);
+
+-- Stored routines and triggers
+DELIMITER $$
+
+DROP FUNCTION IF EXISTS fn_slot_duration_hours $$
+CREATE FUNCTION fn_slot_duration_hours(p_start TIME, p_end TIME)
+RETURNS DECIMAL(8,2)
+DETERMINISTIC
+BEGIN
+    RETURN TIMESTAMPDIFF(MINUTE, CONCAT('1970-01-01 ', p_start), CONCAT('1970-01-01 ', p_end)) / 60;
+END $$
+
+DROP PROCEDURE IF EXISTS sp_create_booking $$
+CREATE PROCEDURE sp_create_booking(
+    IN p_ssrn VARCHAR(20),
+    IN p_court_id INT,
+    IN p_slot_id INT
+)
+BEGIN
+    DECLARE v_slot_status ENUM('Available','Booked','Blocked');
+    DECLARE v_slot_court INT;
+    DECLARE v_court_status ENUM('Active','Inactive','Under Maintenance');
+    DECLARE v_hourly_rate DECIMAL(8,2);
+    DECLARE v_start_time TIME;
+    DECLARE v_end_time TIME;
+    DECLARE v_total_amount DECIMAL(8,2);
+    DECLARE v_booking_id INT;
+
+    DECLARE exit handler FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    SELECT Status, Court_ID, Start_Time, End_Time
+    INTO v_slot_status, v_slot_court, v_start_time, v_end_time
+    FROM Slot
+    WHERE Slot_ID = p_slot_id
+    FOR UPDATE;
+
+    IF v_slot_status IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Slot not found';
+    END IF;
+
+    IF v_slot_status <> 'Available' THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Slot is not available';
+    END IF;
+
+    IF v_slot_court <> p_court_id THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Slot does not belong to the specified court';
+    END IF;
+
+    SELECT Availability_Status, Hourly_Rate
+    INTO v_court_status, v_hourly_rate
+    FROM Court
+    WHERE Court_ID = p_court_id
+    FOR UPDATE;
+
+    IF v_court_status IS NULL THEN
+        SIGNAL SQLSTATE '45003' SET MESSAGE_TEXT = 'Court not found';
+    END IF;
+
+    IF v_court_status <> 'Active' THEN
+        SIGNAL SQLSTATE '45004' SET MESSAGE_TEXT = 'Court is not available for booking';
+    END IF;
+
+    SET v_total_amount = fn_slot_duration_hours(v_start_time, v_end_time) * IFNULL(v_hourly_rate, 0);
+
+    INSERT INTO Booking (SSRN, Court_ID, Slot_ID, Booking_Status, Total_Amount, Payment_Status)
+    VALUES (p_ssrn, p_court_id, p_slot_id, 'Pending', v_total_amount, 'Unpaid');
+    SET v_booking_id = LAST_INSERT_ID();
+
+    UPDATE Slot
+    SET Status = 'Booked'
+    WHERE Slot_ID = p_slot_id;
+
+    COMMIT;
+
+    SELECT 
+        b.Booking_ID,
+        b.Booking_Date,
+        b.Booking_Status,
+        b.Total_Amount,
+        b.Payment_Status,
+        c.Court_Name,
+        c.Location,
+        s.Slot_Date,
+        s.Start_Time,
+        s.End_Time
+    FROM Booking b
+    JOIN Court c ON b.Court_ID = c.Court_ID
+    JOIN Slot s ON b.Slot_ID = s.Slot_ID
+    WHERE b.Booking_ID = v_booking_id;
+END $$
+
+DROP PROCEDURE IF EXISTS sp_cancel_booking $$
+CREATE PROCEDURE sp_cancel_booking(
+    IN p_booking_id INT,
+    IN p_ssrn VARCHAR(20)
+)
+BEGIN
+    DECLARE v_status ENUM('Pending','Confirmed','Cancelled','Completed','No-Show');
+    DECLARE v_slot_id INT;
+
+    DECLARE exit handler FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    SELECT Booking_Status, Slot_ID
+    INTO v_status, v_slot_id
+    FROM Booking
+    WHERE Booking_ID = p_booking_id AND SSRN = p_ssrn
+    FOR UPDATE;
+
+    IF v_status IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Booking not found';
+    END IF;
+
+    IF v_status = 'Cancelled' THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Booking already cancelled';
+    END IF;
+
+    IF v_status = 'Completed' THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Completed booking cannot be cancelled';
+    END IF;
+
+    UPDATE Booking
+    SET Booking_Status = 'Cancelled',
+        Cancellation_Date = CURRENT_TIMESTAMP
+    WHERE Booking_ID = p_booking_id;
+
+    UPDATE Slot
+    SET Status = 'Available'
+    WHERE Slot_ID = v_slot_id;
+
+    COMMIT;
+END $$
+
+DROP PROCEDURE IF EXISTS sp_record_payment $$
+CREATE PROCEDURE sp_record_payment(
+    IN p_booking_id INT,
+    IN p_ssrn VARCHAR(20),
+    IN p_payment_method ENUM('Cash','Card','UPI','Wallet'),
+    IN p_transaction_id VARCHAR(100)
+)
+BEGIN
+    DECLARE v_amount DECIMAL(8,2);
+    DECLARE v_status ENUM('Pending','Confirmed','Cancelled','Completed','No-Show');
+    DECLARE v_payment_status ENUM('Unpaid','Paid','Refunded');
+
+    DECLARE exit handler FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    SELECT Total_Amount, Booking_Status, Payment_Status
+    INTO v_amount, v_status, v_payment_status
+    FROM Booking
+    WHERE Booking_ID = p_booking_id AND SSRN = p_ssrn
+    FOR UPDATE;
+
+    IF v_amount IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Booking not found';
+    END IF;
+
+    IF v_payment_status = 'Paid' THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Booking already marked as paid';
+    END IF;
+
+    IF v_status = 'Cancelled' THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Cannot pay for a cancelled booking';
+    END IF;
+
+    INSERT INTO Payment (Booking_ID, Amount, Payment_Method, Transaction_ID)
+    VALUES (p_booking_id, v_amount, p_payment_method, p_transaction_id);
+
+    UPDATE Booking
+    SET Payment_Status = 'Paid'
+    WHERE Booking_ID = p_booking_id;
+
+    COMMIT;
+END $$
+
+DROP PROCEDURE IF EXISTS sp_confirm_booking $$
+CREATE PROCEDURE sp_confirm_booking(
+    IN p_booking_id INT,
+    IN p_ssrn VARCHAR(20)
+)
+BEGIN
+    DECLARE v_status ENUM('Pending','Confirmed','Cancelled','Completed','No-Show');
+    DECLARE v_payment_status ENUM('Unpaid','Paid','Refunded');
+
+    UPDATE Booking
+    SET Booking_Status = Booking_Status
+    WHERE Booking_ID = p_booking_id;
+
+    SELECT Booking_Status, Payment_Status
+    INTO v_status, v_payment_status
+    FROM Booking
+    WHERE Booking_ID = p_booking_id AND SSRN = p_ssrn;
+
+    IF v_status IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Booking not found';
+    END IF;
+
+    IF v_status = 'Cancelled' THEN
+        SIGNAL SQLSTATE '45001' SET MESSAGE_TEXT = 'Cancelled booking cannot be confirmed';
+    END IF;
+
+    IF v_status = 'Completed' THEN
+        SIGNAL SQLSTATE '45002' SET MESSAGE_TEXT = 'Completed booking cannot be confirmed';
+    END IF;
+
+    UPDATE Booking
+    SET Booking_Status = 'Confirmed'
+    WHERE Booking_ID = p_booking_id;
+END $$
+
+DROP TRIGGER IF EXISTS trg_payment_after_insert $$
+CREATE TRIGGER trg_payment_after_insert
+AFTER INSERT ON Payment
+FOR EACH ROW
+BEGIN
+    UPDATE Booking
+    SET Payment_Status = 'Paid'
+    WHERE Booking_ID = NEW.Booking_ID;
+END $$
+
+DROP TRIGGER IF EXISTS trg_booking_complete_usage $$
+CREATE TRIGGER trg_booking_complete_usage
+AFTER UPDATE ON Booking
+FOR EACH ROW
+BEGIN
+    IF NEW.Booking_Status = 'Completed' AND OLD.Booking_Status <> 'Completed' THEN
+        INSERT INTO Usage_History (SSRN, Court_ID, Slot_ID, Usage_Date, Duration_Minutes)
+        SELECT NEW.SSRN, NEW.Court_ID, NEW.Slot_ID, CURRENT_DATE,
+               TIMESTAMPDIFF(MINUTE, CONCAT('1970-01-01 ', s.Start_Time), CONCAT('1970-01-01 ', s.End_Time))
+        FROM Slot s
+        WHERE s.Slot_ID = NEW.Slot_ID;
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+
 

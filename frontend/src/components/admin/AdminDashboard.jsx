@@ -48,10 +48,6 @@ const AdminDashboard = () => {
             <p className="stat-value">{stats.pending_bookings || 0}</p>
           </div>
           <div className="stat-card">
-            <h3>Completed Bookings</h3>
-            <p className="stat-value">{stats.completed_bookings || 0}</p>
-          </div>
-          <div className="stat-card">
             <h3>Cancelled Bookings</h3>
             <p className="stat-value">{stats.cancelled_bookings || 0}</p>
           </div>
@@ -63,15 +59,20 @@ const AdminDashboard = () => {
             <h3>Booked Slots</h3>
             <p className="stat-value">{stats.booked_slots || 0}</p>
           </div>
-          <div className="stat-card revenue">
-            <h3>Total Revenue</h3>
-            <p className="stat-value">₹{parseFloat(stats.total_revenue || 0).toFixed(2)}</p>
-          </div>
         </div>
       )}
+      <div className="stats-grid">
+        <div className="stat-card revenue">
+          <h3>Total Revenue</h3>
+          <p className="stat-value">₹{parseFloat(stats.total_revenue || 0).toFixed(2)}</p>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default AdminDashboard;
+
+
+
 

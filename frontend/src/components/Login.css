@@ -2,8 +2,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  min-height: 100vh;
   padding: 20px;
+  background-image: url('D:\Projects_Sem_5\DBMS_mini\new\frontend\src\assets\2.png');
+  background-size: cover;       /* Covers the entire container */
+  background-position: center;  /* Centers the image */
+  background-repeat: repeat;
 }
 
 .login-card {

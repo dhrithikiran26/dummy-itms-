@@ -17,3 +17,6 @@ SELECT COUNT(*) as Staff_Count FROM Staff;
 -- List all staff emails
 SELECT Email, Staff_Name, Role FROM Staff ORDER BY Email;
 
+
+
+
